@@ -29,7 +29,7 @@ module.exports = {
                 return next(new CustomError('Email or password is not valid'));
             }
 
-            req.userByEmail = userByEmail;
+            req.user = userByEmail;
             next();
         } catch (e) {
             next(e);
@@ -39,7 +39,7 @@ module.exports = {
     isPasswordProperly: async (req, res, next) => {
         try {
             const {password} = req.loginData;
-            const {password: hashedPassword} = req.userByEmail;
+            const {password: hashedPassword} = req.user;
 
             const isPasswordProperly = await passwordService.comparePassword(password, hashedPassword);
 
@@ -63,12 +63,14 @@ module.exports = {
 
             tokenService.checkAccessToken(access_token);
 
-            const isAccessTokenExist = await Token.findOne({access_token});
+            const tokenInfo = await Token.findOne({access_token}).populate('userID');
 
-            if (!isAccessTokenExist) {
+            if (!tokenInfo) {
                 return next(new CustomError('Token not valid', 401));
             }
 
+            req.user = tokenInfo['userID'];
+            req.access_token = access_token;
             next();
         } catch (e) {
             next(e);
@@ -80,12 +82,12 @@ module.exports = {
             const refresh_token = req.get('Authorization');
 
             if (!refresh_token) {
-                return next(new CustomError('Token not valid', 401));
+                return next(new CustomError('No token', 401));
             }
 
             tokenService.checkRefreshToken(refresh_token);
 
-            const tokenInfo = await Token.findOne({refresh_token});
+            const tokenInfo = await Token.findOne({refresh_token})
 
             if (!tokenInfo) {
                 return next(new CustomError('Token not valid', 401));

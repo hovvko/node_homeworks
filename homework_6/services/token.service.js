@@ -22,7 +22,7 @@ module.exports = {
         try {
             return jwt.verify(token, secretWord.ACCESS_SECRET_WORD);
         } catch (e) {
-            throw new CustomError('Token not validdddd', 401);
+            throw new CustomError('Token not valid', 401);
         }
     },
 

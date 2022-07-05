@@ -15,4 +15,9 @@ authRouter.post('/refresh',
     authController.refresh
 );
 
+authRouter.post('/logout',
+    authMiddleware.checkAccessToken,
+    authController.logout
+)
+
 module.exports = authRouter;

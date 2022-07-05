@@ -7,12 +7,12 @@ module.exports = {
             const tokens = tokenService.getTokens();
 
             await Token.create({
-                user: req.userByEmail,
+                userID: req.user['_id'],
                 ...tokens
             });
 
             res.json({
-                user: req.userByEmail,
+                user: req.user,
                 ...tokens
             });
         } catch (e) {
@@ -22,21 +22,31 @@ module.exports = {
 
     refresh: async (req, res, next) => {
         try {
-            const {user, refresh_token} = req.tokenInfo;
+            const {userID} = req.tokenInfo;
 
-            await Token.deleteOne({refresh_token});
+            await Token.deleteOne({userID});
 
             const tokens = tokenService.getTokens();
 
             await Token.create({
-                user,
+                userID,
                 ...tokens
             });
 
             res.json({
-                user,
+                userID,
                 ...tokens
             });
+        } catch (e) {
+            next(e);
+        }
+    },
+
+    logout: async (req, res, next) => {
+        try {
+            await Token.deleteOne({access_token: req.access_token});
+
+            res.json('User was logout');
         } catch (e) {
             next(e);
         }
